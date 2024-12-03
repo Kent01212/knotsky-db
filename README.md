@@ -8,7 +8,7 @@
 ・コマンドラインで Docker:compose Up を実行
 
 DJango
-・https://localhost:8000 へアクセス
+・http://localhost:8000 へアクセス
 
 Mysql 起動方法
 ・vscodeのターミナルを開く

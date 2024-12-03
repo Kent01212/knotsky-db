@@ -16,4 +16,4 @@ Mysql 起動方法
 ・bash-5.1# mysql -u root -p
 
 MinIO
-・
+・http://localhost:9001 へアクセス

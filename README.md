@@ -7,7 +7,7 @@
 ・vscodeでgit-cloneしてください  
 ・コマンドラインで Docker:compose Up を実行  
   
-DJango  
+Django  
 ・http://localhost:8000 へアクセス  
   
 Mysql 起動方法  

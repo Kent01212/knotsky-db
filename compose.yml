@@ -1,51 +1,76 @@
+version: '3.8'
+
 services:
   mysql:
-    image: mysql:latest
-    container_name: mysql_container
+    image: mysql:8.0                         # 使用するMySQLのバージョンを指定
+    container_name: knotsky_mysql_container  # MySQLコンテナの名前
     environment:
-      MYSQL_ROOT_PASSWORD: root-pass
-      MYSQL_DATABASE: test-db
-      MYSQL_USER: test-user
-      MYSQL_PASSWORD: test-pass
+      MYSQL_ROOT_PASSWORD: root-pass         # MySQLのrootユーザーのパスワード
+      MYSQL_DATABASE: test-db                # 初期化時に作成するデータベース名
+      MYSQL_USER: test-user                  # 作成するデータベースユーザー名
+      MYSQL_PASSWORD: test-pass              # データベースユーザーのパスワード
     volumes:
-      - db-data:/var/lib/mysql
+      - db-data:/var/lib/mysql               # データベースデータを永続化するためのボリューム
+    healthcheck:                             # MySQLサービスの起動確認に使用
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "test-user", "-ptest-pass"]
+      interval: 10s                          # ヘルスチェックの実行間隔
+      retries: 5                             # ヘルスチェックのリトライ回数
 
   django:
-    build: .
-    container_name: django_container
-    depends_on:
-      - mysql
-      - minio
+    build: .                                 # カレントディレクトリのDockerfileを使ってDjangoのイメージをビルド
+    container_name: knotsky_django_container # Djangoコンテナの名前
+    image: knotsky-django-app:latest         # ビルド時に作成されるイメージ名
+    depends_on:                              # サービスの起動順序を定義
+      mysql:
+        condition: service_healthy           # MySQLのヘルスチェックが成功するまでDjangoの起動を待機
     ports:
-      - "8000:8000"
+      - "8000:8000"                          # ホストの8000ポートをコンテナの8000ポートにマッピング
     volumes:
-      - ./:/code
+      - ./:/code                             # ローカルのプロジェクトディレクトリをコンテナにマウント
+    # Djangoで管理画面にアクセスするためのコマンド
+    # 初回のみ以下を実行し、管理者アカウントとマイグレーションを作成。
+    # コメントアウトされている理由: 再実行時にエラーになるため、最初だけ有効にする。
+    # command: >
+    #   sh -c "
+    #   python manage.py makemigrations &&
+    #   python manage.py migrate &&
+    #   python manage.py createsuperuser --no-input --username admin --email admin@example.com &&
+    #   python manage.py runserver 0.0.0.0:8000
+    #   "
+    environment:
+      DJANGO_SUPERUSER_USERNAME: admin           # 管理者ユーザー名（環境変数で指定）
+      DJANGO_SUPERUSER_EMAIL: admin@example.com  # 管理者メールアドレス
+      DJANGO_SUPERUSER_PASSWORD: admin-pass      # 管理者パスワード
 
   minio:
-    image: minio/minio:latest
+    image: minio/minio:latest                    # MinIOのイメージを指定
+    container_name: knotsky_minio_container      # MinIOコンテナの名前
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
+      MINIO_ROOT_USER: minioadmin                # MinIOの管理者ユーザー名
+      MINIO_ROOT_PASSWORD: minioadmin            # MinIOの管理者パスワード
     ports:
-      - 9000:9000
-      - 9001:9001
+      - 9000:9000  # MinIOのデフォルトWebアクセスポート
+      - 9001:9001  # MinIOのコンソール（管理画面）ポート
     volumes:
-      - ./.minio-storage/:/storage
-    command: ['server', '/storage', '--console-address', ':9001']
-  mc:
-    image: minio/mc:latest
-    depends_on:
-      - minio
-    environment:
-      MINIO_ROOT_USER: "minioadmin"
-      MINIO_ROOT_PASSWORD: "minioadmin"
-    entrypoint: >
-      /bin/sh -c "
-      mc alias set myminio http://minio:9000 minioadmin minioadmin;
-      mc mb myminio/local-minio;
-      mc anonymous set public myminio/local-minio;
-      "
+      - ./.minio-storage/:/storage               # ストレージデータを永続化するためのボリューム
+    command: ['server', '/storage', '--console-address', ':9001']  # MinIOサーバーの起動コマンド
+
+  # MinIOのCLIクライアント（mc）を使用してバケットを作成するサービス
+  # 初回の設定用に使用します。複数回実行するとエラーになるため、通常は一時的に有効化して利用。
+  # mc:
+  #   image: minio/mc:latest  # MinIOのCLIクライアントイメージ
+  #   depends_on:
+  #     - minio  # MinIOサービスが起動してから実行
+  #   environment:
+  #     MINIO_ROOT_USER: "minioadmin"  # MinIO管理者ユーザー
+  #     MINIO_ROOT_PASSWORD: "minioadmin"  # MinIO管理者パスワード
+  #   entrypoint: >
+  #     /bin/sh -c "
+  #     mc alias set myminio http://minio:9000 minioadmin minioadmin;  # MinIOエイリアス設定
+  #     mc mb myminio/local-minio;  # バケットの作成
+  #     mc anonymous set public myminio/local-minio;  # 作成したバケットをパブリックに設定
+  #     "
 
 volumes:
-  db-data:
-  minio-data:
+  db-data:     # MySQLの永続化データ用ボリューム
+  minio-data:  # MinIOの永続化データ用ボリューム

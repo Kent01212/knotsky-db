@@ -76,9 +76,9 @@ WSGI_APPLICATION = 'myproject.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'test-db',
-        'USER': 'test-user',
-        'PASSWORD': 'test-pass',
+        'NAME': 'knotsky-db',
+        'USER': 'knotsky-admin',
+        'PASSWORD': 'knotsky-pass',
         'HOST': 'mysql',
         'PORT': '3306',
     }
@@ -130,8 +130,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # MinIO
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
-AWS_ACCESS_KEY_ID = 'minioadmin'
-AWS_SECRET_ACCESS_KEY = 'minioadmin'
-AWS_STORAGE_BUCKET_NAME = 'my-bucket'  # 適宜変更
+AWS_ACCESS_KEY_ID = 'knotsky_minio_admin'
+AWS_SECRET_ACCESS_KEY = 'knotsky_minio_admin'
+AWS_STORAGE_BUCKET_NAME = 'my-knotsky_bucket'  # 適宜変更
 AWS_S3_ENDPOINT_URL = 'http://minio_container:9000'
 AWS_QUERYSTRING_AUTH = False

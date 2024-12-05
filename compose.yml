@@ -5,12 +5,12 @@ services:
     image: mysql:8.0                         # 使用するMySQLのバージョンを指定
     container_name: knotsky_mysql_container  # MySQLコンテナの名前
     environment:
-      MYSQL_ROOT_PASSWORD: knotsky         # MySQLのrootユーザーのパスワード
-      MYSQL_DATABASE: knotsky-db                # 初期化時に作成するデータベース名
-      MYSQL_USER: knotsky-admin                  # 作成するデータベースユーザー名
-      MYSQL_PASSWORD: knotsky-pass              # データベースユーザーのパスワード
+      MYSQL_ROOT_PASSWORD: knotsky           # MySQLのrootユーザーのパスワード
+      MYSQL_DATABASE: knotsky-db             # 初期化時に作成するデータベース名
+      MYSQL_USER: knotsky-admin              # 作成するデータベースユーザー名
+      MYSQL_PASSWORD: knotsky-pass           # データベースユーザーのパスワード
     volumes:
-      - knotsky-data:/var/lib/mysql               # データベースデータを永続化するためのボリューム
+      - knotsky-data:/var/lib/mysql          # データベースデータを永続化するためのボリューム
     healthcheck:                             # MySQLサービスの起動確認に使用
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "knotsky-admin", "-pknotsky-pass"]
       interval: 10s                          # ヘルスチェックの実行間隔
@@ -46,8 +46,8 @@ services:
     image: minio/minio:latest                    # MinIOのイメージを指定
     container_name: knotsky_minio_container      # MinIOコンテナの名前
     environment:
-      MINIO_ROOT_USER: knotsky_minio_admin                # MinIOの管理者ユーザー名
-      MINIO_ROOT_PASSWORD: knotsky_minio_admin            # MinIOの管理者パスワード
+      MINIO_ROOT_USER: knotsky_minio_admin       # MinIOの管理者ユーザー名
+      MINIO_ROOT_PASSWORD: knotsky_minio_admin   # MinIOの管理者パスワード
     ports:
       - 9000:9000  # MinIOのデフォルトWebアクセスポート
       - 9001:9001  # MinIOのコンソール（管理画面）ポート
@@ -66,7 +66,7 @@ services:
       PMA_USER: knotsky-admin
       PMA_PASSWORD: knotsky-pass
     ports:
-      - "8081:80"  # 8081ポートに変更
+      - "8081:80"  # 8081ポートに変更 / 8000だとIt's workとしか表示されないため
 
   # MinIOのCLIクライアント（mc）を使用してバケットを作成するサービス
   # 初回の設定用に使用します。複数回実行するとエラーになるため、通常は一時的に有効化して利用。
@@ -85,5 +85,5 @@ services:
   #     "
 
 volumes:
-  knotsky-data:     # MySQLの永続化データ用ボリューム
-  minio-data:  # MinIOの永続化データ用ボリューム
+  knotsky-data: # MySQLの永続化データ用ボリューム
+  minio-data:   # MinIOの永続化データ用ボリューム
